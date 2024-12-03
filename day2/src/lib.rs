@@ -41,8 +41,13 @@ pub fn part_two(content: &str) -> usize {
                         &line
                             .iter()
                             .enumerate()
-                            .filter(|(report_index, _)| *report_index != i)
-                            .map(|(_, level)| *level)
+                            .filter_map(|(report_index, level)| {
+                                if report_index != i {
+                                    Some(*level)
+                                } else {
+                                    None
+                                }
+                            })
                             .collect::<Vec<_>>(),
                     )
                 })
