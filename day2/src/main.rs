@@ -6,8 +6,8 @@ fn main() {
 
     let solution1 = part_one(&content);
 
-    // let solution2 = part_two(&content);
+    let solution2 = part_two(&content);
 
     println!("{solution1:?}");
-    // println!("{solution2:?}");
+    println!("{solution2:?}");
 }

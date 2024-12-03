@@ -29,6 +29,23 @@ pub fn part_one(content: &str) -> usize {
     content.lines().map(parse_line).filter(check_safety).count()
 }
 
-pub fn part_two(_content: &str) -> usize {
-    todo!()
+pub fn part_two(content: &str) -> usize {
+    content
+        .lines()
+        .map(parse_line)
+        .filter(|line| {
+            let is_safe = check_safety(line);
+            is_safe
+                || (0..line.len()).any(|i| {
+                    check_safety(
+                        &line
+                            .iter()
+                            .enumerate()
+                            .filter(|(report_index, _)| *report_index != i)
+                            .map(|(_, level)| *level)
+                            .collect::<Vec<_>>(),
+                    )
+                })
+        })
+        .count()
 }
