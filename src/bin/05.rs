@@ -37,7 +37,7 @@ impl SafetyManual {
         })
     }
 
-    fn fix_update(&self, mut update: Vec<u32>) -> Vec<u32> {
+    fn sort_update_line(&self, mut update: Vec<u32>) -> Vec<u32> {
         update.sort_by(|&x, &y| {
             if self.rules.contains(&(x, y)) {
                 Ordering::Less
@@ -73,8 +73,8 @@ impl SafetyManual {
                 let is_invalid = !self.is_sorted(&update);
 
                 if is_invalid {
-                    let fixed_update = self.fix_update(update.clone());
-                    Some(fixed_update[fixed_update.len() / 2])
+                    let sorted_update = self.sort_update_line(update.clone());
+                    Some(sorted_update[sorted_update.len() / 2])
                 } else {
                     None
                 }
