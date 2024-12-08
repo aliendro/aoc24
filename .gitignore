@@ -1,3 +1,9 @@
 debug/
 target/
-input/
+
+data/inputs/*
+!data/inputs/.readme
+data/puzzles/*
+!data/puzzles/.readme
+data/examples/*
+!data/examples/.readme
