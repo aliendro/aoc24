@@ -1,0 +1,13 @@
+use std::fs;
+
+fn main() {
+    let _content = fs::read_to_string("data/inputs/DAY").expect("Failed to read from input file");
+
+    let part01_solution = "";
+
+    println!("Part01 solution: {part01_solution}");
+
+    let part02_solution = "";
+
+    println!("Part02 solution: {part02_solution}");
+}
