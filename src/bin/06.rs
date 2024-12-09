@@ -1,7 +1,7 @@
 use std::{collections::HashSet, fs};
 
 fn main() {
-    let content = fs::read_to_string("data/inputs/06").expect("Failed to read from input file");
+    let content = fs::read_to_string("data/examples/06").expect("Failed to read from input file");
 
     let mut guard = Guard::from(content.as_str());
 
@@ -9,9 +9,9 @@ fn main() {
 
     println!("Part01 solution: {part01_solution}");
 
-    // let part02_solution = part_two(&guard);
+    let part02_solution = part_two(&mut guard);
 
-    // println!("Part02 solution: {part02_solution}");
+    println!("Part02 solution: {part02_solution}");
 }
 
 fn part_one(guard: &mut Guard) -> usize {
@@ -25,8 +25,15 @@ fn part_one(guard: &mut Guard) -> usize {
     guard.visited.len()
 }
 
-fn part_two(guard: &Guard) -> u32 {
-    todo!()
+fn part_two(guard: &mut Guard) -> u32 {
+    while let Some(action) = guard.patrol() {
+        match action {
+            Action::Rotate => guard.rotate(),
+            Action::Walk => guard.walk(),
+        }
+    }
+
+    guard.obstructions
 }
 
 #[derive(Debug)]
@@ -47,9 +54,9 @@ enum Action {
 struct Guard {
     position: (usize, usize),
     direction: Direction,
-    steps: u32, // Just for fun
     map: String,
     visited: HashSet<(usize, usize)>,
+    obstructions: u32,
 }
 
 impl From<&str> for Guard {
@@ -57,9 +64,9 @@ impl From<&str> for Guard {
         let mut guard = Guard {
             direction: Direction::Up,
             position: (0, 0),
-            steps: 1,
             map: input.to_string(),
             visited: HashSet::new(),
+            obstructions: 0,
         };
 
         for (row, line) in input.lines().enumerate() {
@@ -77,63 +84,50 @@ impl From<&str> for Guard {
 }
 
 impl Guard {
-    fn patrol(&self) -> Option<Action> {
+    fn patrol(&mut self) -> Option<Action> {
         match self.direction {
             Direction::Up => {
-                let (row, _col) = self.position;
+                let (row, col) = (self.position.0.checked_sub(1), self.position.1);
 
-                if row == 0 {
-                    return None;
-                }
-
-                let (row, col) = (self.position.0 - 1, self.position.1);
-
-                match self.map.lines().nth(row)?.chars().nth(col) {
-                    Some(c) if c == '#' => Some(Action::Rotate),
-                    Some(_c) => Some(Action::Walk),
-                    _ => None,
+                match self.map.lines().nth(row?)?.chars().nth(col) {
+                    None => None,
+                    Some(c) => match c {
+                        '#' => Some(Action::Rotate),
+                        _ => Some(Action::Walk),
+                    },
                 }
             }
             Direction::Right => {
-                let (_row, col) = self.position;
-
-                if col == self.map.lines().nth(0).unwrap().len() - 1 {
-                    return None;
-                }
                 let (row, col) = (self.position.0, self.position.1 + 1);
 
                 match self.map.lines().nth(row)?.chars().nth(col) {
-                    Some(c) if c == '#' => Some(Action::Rotate),
-                    Some(_c) => Some(Action::Walk),
-                    _ => None,
+                    None => None,
+                    Some(c) => match c {
+                        '#' => Some(Action::Rotate),
+                        _ => Some(Action::Walk),
+                    },
                 }
             }
             Direction::Down => {
-                let (row, _col) = self.position;
-
-                if row == self.map.lines().nth(0).unwrap().len() - 1 {
-                    return None;
-                }
                 let (row, col) = (self.position.0 + 1, self.position.1);
 
                 match self.map.lines().nth(row)?.chars().nth(col) {
-                    Some(c) if c == '#' => Some(Action::Rotate),
-                    Some(_c) => Some(Action::Walk),
-                    _ => None,
+                    None => None,
+                    Some(c) => match c {
+                        '#' => Some(Action::Rotate),
+                        _ => Some(Action::Walk),
+                    },
                 }
             }
             Direction::Left => {
-                let (_row, col) = self.position;
+                let (row, col) = (self.position.0, self.position.1.checked_sub(1));
 
-                if col == 0 {
-                    return None;
-                }
-                let (row, col) = (self.position.0, self.position.1 - 1);
-
-                match self.map.lines().nth(row)?.chars().nth(col) {
-                    Some(c) if c == '#' => Some(Action::Rotate),
-                    Some(_c) => Some(Action::Walk),
-                    _ => None,
+                match self.map.lines().nth(row)?.chars().nth(col?) {
+                    None => None,
+                    Some(c) => match c {
+                        '#' => Some(Action::Rotate),
+                        _ => Some(Action::Walk),
+                    },
                 }
             }
         }
@@ -151,22 +145,18 @@ impl Guard {
     fn walk(&mut self) {
         match self.direction {
             Direction::Up => {
-                self.steps += 1;
                 self.position = (self.position.0 - 1, self.position.1);
                 self.visited.insert(self.position);
             }
             Direction::Right => {
-                self.steps += 1;
                 self.position = (self.position.0, self.position.1 + 1);
                 self.visited.insert(self.position);
             }
             Direction::Down => {
-                self.steps += 1;
                 self.position = (self.position.0 + 1, self.position.1);
                 self.visited.insert(self.position);
             }
             Direction::Left => {
-                self.steps += 1;
                 self.position = (self.position.0, self.position.1 - 1);
                 self.visited.insert(self.position);
             }
