@@ -9,16 +9,16 @@ fn main() {
 
     println!("Part01 solution: {part01_solution}");
 
-    // let part02_solution = part_two(&mut guard);
+    let part02_solution = part_two(&mut guard);
 
-    // println!("Part02 solution: {part02_solution}");
+    println!("Part02 solution: {part02_solution}");
 }
 
 fn part_one(guard: &mut Guard) -> usize {
     while let Some(action) = guard.patrol() {
         match action {
-            Action::Rotate => guard.rotate(),
-            Action::Walk => guard.walk(),
+            State::Rotate => guard.rotate(),
+            _ => guard.walk(),
         }
     }
 
@@ -26,9 +26,29 @@ fn part_one(guard: &mut Guard) -> usize {
 }
 
 fn part_two(guard: &mut Guard) -> u32 {
-    guard.look_for_obstacles();
+    let mut obstacles = 0;
 
-    guard.obstacles
+    let candidates = guard.visited_tiles.clone();
+    let original_map = guard.map.clone();
+
+    for (row, col) in candidates.iter() {
+        guard.reset();
+        guard.map = original_map.clone();
+        guard.map[*row][*col] = '#';
+
+        while let Some(action) = guard.patrol() {
+            match action {
+                State::Rotate => guard.rotate(),
+                State::Walk => guard.walk(),
+                State::Loop => {
+                    obstacles += 1;
+                    break;
+                }
+            }
+        }
+    }
+
+    obstacles
 }
 
 #[derive(Debug, Eq, Hash, PartialEq, Clone)]
@@ -40,9 +60,10 @@ enum Direction {
 }
 
 #[derive(Debug)]
-enum Action {
+enum State {
     Walk,
     Rotate,
+    Loop,
 }
 
 #[derive(Debug)]
@@ -50,10 +71,9 @@ struct Guard {
     initial_position: (usize, usize),
     current_position: (usize, usize),
     direction: Direction,
-    map: Vec<Vec<char>>,
     visited_tiles: HashSet<(usize, usize)>,
     history: HashSet<(usize, usize, Direction)>,
-    obstacles: u32,
+    map: Vec<Vec<char>>,
 }
 
 impl From<&str> for Guard {
@@ -68,7 +88,6 @@ impl From<&str> for Guard {
                 .collect::<Vec<_>>(),
             visited_tiles: HashSet::new(),
             history: HashSet::new(),
-            obstacles: 0,
         };
 
         for (row, line) in guard.map.iter().enumerate() {
@@ -88,7 +107,7 @@ impl From<&str> for Guard {
 }
 
 impl Guard {
-    fn patrol(&mut self) -> Option<Action> {
+    fn patrol(&mut self) -> Option<State> {
         match self.direction {
             Direction::Up => {
                 let (row, col) = (
@@ -96,33 +115,45 @@ impl Guard {
                     self.current_position.1,
                 );
 
+                if self.history.contains(&(row?, col, self.direction.clone())) {
+                    return Some(State::Loop);
+                }
+
                 match self.map.get(row?)?.get(col) {
                     None => None,
                     Some(c) => match c {
-                        &'#' => Some(Action::Rotate),
-                        _ => Some(Action::Walk),
+                        &'#' => Some(State::Rotate),
+                        _ => Some(State::Walk),
                     },
                 }
             }
             Direction::Right => {
                 let (row, col) = (self.current_position.0, self.current_position.1 + 1);
 
+                if self.history.contains(&(row, col, self.direction.clone())) {
+                    return Some(State::Loop);
+                }
+
                 match self.map.get(row)?.get(col) {
                     None => None,
                     Some(c) => match c {
-                        &'#' => Some(Action::Rotate),
-                        _ => Some(Action::Walk),
+                        &'#' => Some(State::Rotate),
+                        _ => Some(State::Walk),
                     },
                 }
             }
             Direction::Down => {
                 let (row, col) = (self.current_position.0 + 1, self.current_position.1);
 
+                if self.history.contains(&(row, col, self.direction.clone())) {
+                    return Some(State::Loop);
+                }
+
                 match self.map.get(row)?.get(col) {
                     None => None,
                     Some(c) => match c {
-                        &'#' => Some(Action::Rotate),
-                        _ => Some(Action::Walk),
+                        &'#' => Some(State::Rotate),
+                        _ => Some(State::Walk),
                     },
                 }
             }
@@ -132,11 +163,15 @@ impl Guard {
                     self.current_position.1.checked_sub(1),
                 );
 
+                if self.history.contains(&(row, col?, self.direction.clone())) {
+                    return Some(State::Loop);
+                }
+
                 match self.map.get(row)?.get(col?) {
                     None => None,
                     Some(c) => match c {
-                        &'#' => Some(Action::Rotate),
-                        _ => Some(Action::Walk),
+                        &'#' => Some(State::Rotate),
+                        _ => Some(State::Walk),
                     },
                 }
             }
@@ -197,14 +232,5 @@ impl Guard {
         self.current_position = self.initial_position;
         self.direction = Direction::Up;
         self.history.clear();
-    }
-
-    // Perform loop detection on current path
-    fn is_loop(&mut self) -> bool {
-        todo!()
-    }
-
-    fn look_for_obstacles(&mut self) {
-        todo!()
     }
 }
