@@ -91,26 +91,21 @@ impl From<&str> for SafetyManual {
 
         let rules = rules
             .lines()
-            .map(|line| {
-                line.split_once('|')
-                    .map(|(l, r)| {
-                        (
-                            l.parse().expect("Failed to parse lhs in rule"),
-                            r.parse().expect("Failed to parse rhs in rule"),
-                        )
-                    })
-                    .expect("Failed to split at delimiter '|'")
+            .filter_map(|line| {
+                let (l, r) = line.split_once('|')?;
+
+                Some((l.parse().ok()?, r.parse().ok()?))
             })
-            .collect::<Vec<_>>();
+            .collect();
 
         let updates = updates
             .lines()
             .map(|line| {
                 line.split(',')
-                    .map(|page| page.parse::<u32>().expect("Failed to parse page number"))
-                    .collect::<Vec<_>>()
+                    .filter_map(|page_number| page_number.parse().ok())
+                    .collect()
             })
-            .collect::<Vec<_>>();
+            .collect();
 
         Self { rules, updates }
     }
