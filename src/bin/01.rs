@@ -13,18 +13,18 @@ fn main() {
 }
 
 fn part_one(content: &str) -> u32 {
-    let mut left: Vec<u32> = Vec::new();
-    let mut right: Vec<u32> = Vec::new();
+    let (mut left, mut right) = (Vec::<u32>::new(), Vec::<u32>::new());
 
-    for line in content.lines() {
-        let mut parsed = line
-            .split(' ')
-            .filter(|v| *v != "")
-            .map(|v| v.parse::<u32>().unwrap());
-        let (l, r) = (parsed.next().unwrap(), parsed.next().unwrap());
-        left.push(l);
-        right.push(r);
-    }
+    content
+        .lines()
+        .filter_map(|line| {
+            let (l, r) = line.split_once("   ")?;
+            Some((l.parse().ok()?, r.parse().ok()?))
+        })
+        .for_each(|(l, r)| {
+            left.push(l);
+            right.push(r);
+        });
 
     left.sort();
     right.sort();
@@ -36,23 +36,22 @@ fn part_one(content: &str) -> u32 {
 }
 
 fn part_two(content: &str) -> u32 {
-    let mut left_list: Vec<u32> = Vec::new();
-    let mut right_map: HashMap<u32, u32> = HashMap::new();
+    let (mut left, mut right) = (Vec::<u32>::new(), HashMap::<u32, u32>::new());
 
-    for line in content.lines() {
-        let mut parsed = line
-            .split(' ')
-            .filter(|v| *v != "")
-            .map(|v| v.parse::<u32>().unwrap());
-        let (left, right) = (parsed.next().unwrap(), parsed.next().unwrap());
-        left_list.push(left);
-        *right_map.entry(right).or_default() += 1;
-    }
+    content
+        .lines()
+        .filter_map(|line| {
+            let (l, r) = line.split_once("   ")?;
+            Some((l.parse().ok()?, r.parse().ok()?))
+        })
+        .for_each(|(l, r)| {
+            left.push(l);
+            *right.entry(r).or_default() += 1;
+        });
 
-    left_list
-        .iter()
+    left.iter()
         .map(|k| {
-            if let Some(count) = right_map.get(&k) {
+            if let Some(count) = right.get(&k) {
                 k * count
             } else {
                 0
