@@ -1,6 +1,6 @@
 [
 	{
-		"label": "AOC :: Run current file",
+		"label": "AOC :: Run",
 		"command": "cargo run --bin $ZED_STEM",
 		"cwd": "$ZED_WORKTREE_ROOT",
 		"use_new_terminal": false,
