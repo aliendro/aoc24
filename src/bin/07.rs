@@ -43,7 +43,9 @@ fn parse(input: &str) -> Vec<(u64, Vec<u64>)> {
         })
         .collect()
 }
-
+/**
+* TODO: Accept "operations" param in line 49 and apply operations in line 56
+*/
 fn solve(result: u64, operands: &[u64]) -> bool {
     operands
         .iter()
