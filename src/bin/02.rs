@@ -14,8 +14,8 @@ fn main() {
 
 fn parse_line(line: &str) -> Vec<u32> {
     line.split_whitespace()
-        .map(|level| level.parse::<u32>().expect("Failed to parse level"))
-        .collect::<Vec<_>>()
+        .filter_map(|level| level.parse().ok())
+        .collect()
 }
 
 fn check_safety(line: &Vec<u32>) -> bool {
