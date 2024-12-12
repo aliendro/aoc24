@@ -12,22 +12,6 @@ fn main() {
     println!("Part02 solution: {part02_solution}");
 }
 
-fn part_one(input: Vec<(u64, Vec<u64>)>) -> u64 {
-    input
-        .iter()
-        .filter(|(result, operands)| solve(*result, operands))
-        .map(|(result, _)| result)
-        .sum()
-}
-
-fn part_two(input: Vec<(u64, Vec<u64>)>) -> u64 {
-    input
-        .iter()
-        .filter(|(result, operands)| solve_concat(*result, operands))
-        .map(|(result, _)| result)
-        .sum()
-}
-
 fn parse(input: &str) -> Vec<(u64, Vec<u64>)> {
     input
         .lines()
@@ -43,30 +27,21 @@ fn parse(input: &str) -> Vec<(u64, Vec<u64>)> {
         })
         .collect()
 }
-/**
-* TODO: Accept "operations" param in line 49 and apply operations in line 56
-*/
-fn solve(result: u64, operands: &[u64]) -> bool {
-    operands
-        .iter()
-        .skip(1)
-        .fold(vec![operands[0]], |operands, &operand| {
-            operands
-                .iter()
-                .flat_map(|&res| vec![res + operand, res * operand])
-                .collect()
-        })
-        .contains(&result)
-}
 
-fn solve_concat(result: u64, operands: &[u64]) -> bool {
+fn solve(result: u64, operands: &[u64], operations: &[fn(u64, u64) -> u64]) -> bool {
     operands
         .iter()
         .skip(1)
         .fold(vec![operands[0]], |operands, &operand| {
             operands
                 .iter()
-                .flat_map(|&res| vec![res + operand, res * operand, concat_operand(res, operand)])
+                .flat_map(|&res| {
+                    // vec![res + operand, res * operand]
+                    operations
+                        .iter()
+                        .map(|op| op(res, operand))
+                        .collect::<Vec<u64>>()
+                })
                 .collect()
         })
         .contains(&result)
@@ -74,4 +49,22 @@ fn solve_concat(result: u64, operands: &[u64]) -> bool {
 
 fn concat_operand(a: u64, b: u64) -> u64 {
     a * u64::from(10 as u64).pow(b.ilog10() + 1) + b as u64
+}
+
+fn part_one(input: Vec<(u64, Vec<u64>)>) -> u64 {
+    let operations = &[std::ops::Mul::mul, std::ops::Add::add];
+    input
+        .iter()
+        .filter(|(result, operands)| solve(*result, operands, operations))
+        .map(|(result, _)| result)
+        .sum()
+}
+
+fn part_two(input: Vec<(u64, Vec<u64>)>) -> u64 {
+    let operations = &[std::ops::Mul::mul, std::ops::Add::add, concat_operand];
+    input
+        .iter()
+        .filter(|(result, operands)| solve(*result, operands, operations))
+        .map(|(result, _)| result)
+        .sum()
 }
