@@ -47,7 +47,7 @@ fn solve(result: u64, operands: &[u64], operations: &[fn(u64, u64) -> u64]) -> b
         .contains(&result)
 }
 
-fn concat_operand(a: u64, b: u64) -> u64 {
+fn concat(a: u64, b: u64) -> u64 {
     a * u64::from(10 as u64).pow(b.ilog10() + 1) + b as u64
 }
 
@@ -61,7 +61,7 @@ fn part_one(input: Vec<(u64, Vec<u64>)>) -> u64 {
 }
 
 fn part_two(input: Vec<(u64, Vec<u64>)>) -> u64 {
-    let operations = &[std::ops::Mul::mul, std::ops::Add::add, concat_operand];
+    let operations = &[std::ops::Mul::mul, std::ops::Add::add, concat];
     input
         .iter()
         .filter(|(result, operands)| solve(*result, operands, operations))
