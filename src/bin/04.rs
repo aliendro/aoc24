@@ -16,13 +16,7 @@ fn part_one(content: &str) -> u32 {
     let mut count = 0;
     for (row, line) in content.lines().enumerate() {
         for (col, _) in line.chars().enumerate() {
-            count += search_from_point(
-                content,
-                Point {
-                    row: row as i32,
-                    col: col as i32,
-                },
-            );
+            count += search_from_point(content, Point(row as i32, col as i32));
         }
     }
     count
@@ -36,13 +30,7 @@ fn part_two(content: &str) -> u32 {
                 continue;
             }
 
-            let is_valid = search_surroundings(
-                content,
-                Point {
-                    row: row as i32,
-                    col: col as i32,
-                },
-            );
+            let is_valid = search_surroundings(content, Point(row as i32, col as i32));
 
             if is_valid {
                 count += 1;
@@ -53,46 +41,19 @@ fn part_two(content: &str) -> u32 {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub struct Point {
-    pub row: i32,
-    pub col: i32,
-}
+pub struct Point(i32, i32);
 
 impl Point {
     pub fn walk(&self, to: Direction) -> Self {
         match to {
-            Direction::North => Point {
-                row: self.row - 1,
-                col: self.col,
-            },
-            Direction::South => Point {
-                row: self.row + 1,
-                col: self.col,
-            },
-            Direction::West => Point {
-                row: self.row,
-                col: self.col - 1,
-            },
-            Direction::East => Point {
-                row: self.row,
-                col: self.col + 1,
-            },
-            Direction::Northwest => Point {
-                row: self.row - 1,
-                col: self.col - 1,
-            },
-            Direction::Northeast => Point {
-                row: self.row - 1,
-                col: self.col + 1,
-            },
-            Direction::Southwest => Point {
-                row: self.row + 1,
-                col: self.col - 1,
-            },
-            Direction::Southeast => Point {
-                row: self.row + 1,
-                col: self.col + 1,
-            },
+            Direction::North => Point(self.0 - 1, self.1),
+            Direction::South => Point(self.0 + 1, self.1),
+            Direction::West => Point(self.0, self.1 - 1),
+            Direction::East => Point(self.0, self.1 + 1),
+            Direction::Northwest => Point(self.0 - 1, self.1 - 1),
+            Direction::Northeast => Point(self.0 - 1, self.1 + 1),
+            Direction::Southwest => Point(self.0 + 1, self.1 - 1),
+            Direction::Southeast => Point(self.0 + 1, self.1 + 1),
         }
     }
 }
@@ -165,15 +126,15 @@ pub fn expand_to_direction(
 }
 
 fn check_and_collect_point(content: &str, point: Point) -> Option<char> {
-    if point.row < 0 || point.col < 0 {
+    if point.0 < 0 || point.1 < 0 {
         return None;
     }
 
     if let Some(c) = content
         .lines()
-        .nth(point.row as usize)?
+        .nth(point.0 as usize)?
         .chars()
-        .nth(point.col as usize)
+        .nth(point.1 as usize)
     {
         return Some(c);
     }
