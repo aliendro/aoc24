@@ -13,16 +13,22 @@ fn main() {
 }
 
 fn part_one(content: &str) -> u32 {
+    let lines: Vec<&str> = content.lines().collect();
     let mut count = 0;
     for (row, line) in content.lines().enumerate() {
-        for (col, _) in line.chars().enumerate() {
-            count += search_from_point(content, Point(row as i32, col as i32));
+        for (col, c) in line.chars().enumerate() {
+            if c != 'X' {
+                continue;
+            }
+            count += search_from_point(&lines, Point(row as i32, col as i32));
         }
     }
     count
 }
 
 fn part_two(content: &str) -> u32 {
+    let lines: Vec<&str> = content.lines().collect();
+
     let mut count = 0;
     for (row, line) in content.lines().enumerate() {
         for (col, c) in line.chars().enumerate() {
@@ -30,9 +36,7 @@ fn part_two(content: &str) -> u32 {
                 continue;
             }
 
-            let is_valid = search_surroundings(content, Point(row as i32, col as i32));
-
-            if is_valid {
+            if check_surroundings(&lines, Point(row as i32, col as i32)) {
                 count += 1;
             }
         }
@@ -41,10 +45,10 @@ fn part_two(content: &str) -> u32 {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub struct Point(i32, i32);
+struct Point(i32, i32);
 
 impl Point {
-    pub fn walk(&self, to: Direction) -> Self {
+    fn walk(&self, to: Direction) -> Self {
         match to {
             Direction::North => Point(self.0 - 1, self.1),
             Direction::South => Point(self.0 + 1, self.1),
@@ -59,7 +63,7 @@ impl Point {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub enum Direction {
+enum Direction {
     North,
     South,
     East,
@@ -71,7 +75,7 @@ pub enum Direction {
 }
 
 impl Direction {
-    pub fn iterator() -> impl Iterator<Item = Direction> {
+    fn iterator() -> impl Iterator<Item = Direction> {
         [
             Direction::Northwest,
             Direction::North,
@@ -87,11 +91,33 @@ impl Direction {
     }
 }
 
-pub fn search_from_point(content: &str, start: Point) -> u32 {
+fn get_char(lines: &[&str], point: Point) -> Option<char> {
+    lines
+        .get(usize::try_from(point.0).ok()?)?
+        .chars()
+        .nth(usize::try_from(point.1).ok()?)
+}
+
+fn check_pattern(lines: &[&str], start: Point, direction: Direction, pattern: &str) -> bool {
+    let mut current = start;
+
+    for expected_char in pattern.chars() {
+        match get_char(lines, current) {
+            Some(c) if c == expected_char => {
+                current = current.walk(direction);
+            }
+            _ => return false,
+        }
+    }
+    true
+}
+
+fn search_from_point(lines: &[&str], start: Point) -> u32 {
     let mut count: u32 = 0;
+    let pattern = "XMAS";
 
     for direction in Direction::iterator() {
-        if let Some(_) = expand_to_direction(content, start, direction, "XMAS") {
+        if check_pattern(lines, start, direction, pattern) {
             count += 1;
         }
     }
@@ -99,85 +125,15 @@ pub fn search_from_point(content: &str, start: Point) -> u32 {
     count
 }
 
-pub fn expand_to_direction(
-    content: &str,
-    start: Point,
-    direction: Direction,
-    pattern: &str,
-) -> Option<String> {
-    let mut s = String::new();
+fn check_surroundings(lines: &[&str], start: Point) -> bool {
+    let diagonals = [
+        (Direction::Northwest, Direction::Southeast),
+        (Direction::Northeast, Direction::Southwest),
+    ];
+    diagonals.iter().all(|(dir1, dir2)| {
+        let p1 = get_char(lines, start.walk(*dir1));
+        let p2 = get_char(lines, start.walk(*dir2));
 
-    let mut path = start;
-
-    while let Some(c) = check_and_collect_point(content, path) {
-        s.push(c);
-        path = path.walk(direction);
-
-        if s.len() == pattern.len() {
-            break;
-        }
-    }
-
-    if s == pattern {
-        Some(s)
-    } else {
-        None
-    }
-}
-
-fn check_and_collect_point(content: &str, point: Point) -> Option<char> {
-    if point.0 < 0 || point.1 < 0 {
-        return None;
-    }
-
-    if let Some(c) = content
-        .lines()
-        .nth(point.0 as usize)?
-        .chars()
-        .nth(point.1 as usize)
-    {
-        return Some(c);
-    }
-
-    None
-}
-
-pub fn search_surroundings(content: &str, start_point: Point) -> bool {
-    let mut diagonal = String::new();
-
-    if let Some(c) = check_and_collect_point(content, start_point.walk(Direction::Northwest)) {
-        diagonal.push(c);
-    } else {
-        return false;
-    }
-
-    if let Some(c) = check_and_collect_point(content, start_point.walk(Direction::Southeast)) {
-        diagonal.push(c);
-    } else {
-        return false;
-    }
-
-    if diagonal != "MS" && diagonal != "SM" {
-        return false;
-    }
-
-    diagonal.clear();
-
-    if let Some(c) = check_and_collect_point(content, start_point.walk(Direction::Northeast)) {
-        diagonal.push(c);
-    } else {
-        return false;
-    }
-
-    if let Some(c) = check_and_collect_point(content, start_point.walk(Direction::Southwest)) {
-        diagonal.push(c);
-    } else {
-        return false;
-    }
-
-    if diagonal != "MS" && diagonal != "SM" {
-        return false;
-    }
-
-    true
+        matches!((p1, p2), (Some('M'), Some('S')) | (Some('S'), Some('M')))
+    })
 }
