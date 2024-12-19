@@ -123,13 +123,11 @@ impl Map {
         let mut antinodes = HashSet::new();
 
         for (antenna1, antenna2) in antenna_pairs {
-            let mut antinodes_for_pair = Vec::new();
-            if is_harmonics {
-                antinodes_for_pair = self.calculate_harmonics(antenna1, antenna2);
+            antinodes.extend(if is_harmonics {
+                self.calculate_harmonics(antenna1, antenna2)
             } else {
-                antinodes_for_pair = self.calculate_antinodes(antenna1, antenna2);
-            }
-            antinodes.extend(antinodes_for_pair);
+                self.calculate_antinodes(antenna1, antenna2)
+            });
         }
 
         antinodes
