@@ -1,7 +1,7 @@
 use std::{
     collections::{HashMap, HashSet},
     fs,
-    ops::{Add, Sub},
+    ops::{Add, AddAssign, Sub},
 };
 
 fn main() {
@@ -9,11 +9,11 @@ fn main() {
 
     let map = Map::from(content.as_str());
 
-    let part01_solution = map.emit_signals().len();
+    let part01_solution = map.emit_signals(false).len();
 
     println!("Part01 solution: {part01_solution}"); // 252
 
-    let part02_solution = "";
+    let part02_solution = map.emit_signals(true).len();
 
     println!("Part02 solution: {part02_solution}");
 }
@@ -24,10 +24,18 @@ struct Point(i32, i32);
 impl Add for Point {
     type Output = Self;
 
-    fn add(self, other: Self) -> Self {
-        Self(self.0 + other.0, self.1 + other.1)
+    fn add(self, rhs: Self) -> Self {
+        Self(self.0 + rhs.0, self.1 + rhs.1)
     }
 }
+
+impl AddAssign for Point {
+    fn add_assign(&mut self, rhs: Self) {
+        self.0 += rhs.0;
+        self.1 += rhs.1;
+    }
+}
+
 impl Sub for Point {
     type Output = Self;
 
@@ -99,12 +107,28 @@ impl Map {
             .collect()
     }
 
-    fn emit_signals(&self) -> HashSet<Point> {
+    fn calculate_harmonics(&self, p1: Point, p2: Point) -> Vec<Point> {
+        [(p1, p1 - p2), (p2, p2 - p1)]
+            .into_iter()
+            .fold(Vec::new(), |mut v, (mut point, offset)| {
+                while self.get_point(point).is_some() {
+                    v.push(point);
+                    point += offset;
+                }
+                v
+            })
+    }
+    fn emit_signals(&self, is_harmonics: bool) -> HashSet<Point> {
         let antenna_pairs: Vec<(Point, Point)> = self.get_antenna_pairs();
         let mut antinodes = HashSet::new();
 
         for (antenna1, antenna2) in antenna_pairs {
-            let antinodes_for_pair = self.calculate_antinodes(antenna1, antenna2);
+            let mut antinodes_for_pair = Vec::new();
+            if is_harmonics {
+                antinodes_for_pair = self.calculate_harmonics(antenna1, antenna2);
+            } else {
+                antinodes_for_pair = self.calculate_antinodes(antenna1, antenna2);
+            }
             antinodes.extend(antinodes_for_pair);
         }
 
