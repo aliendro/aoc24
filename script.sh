@@ -6,5 +6,5 @@ for i in $(seq 1 25); do
 	else
 		filename="$i"
 	fi
-	aoc download -d $i -i data/inputs/$filename -p data/puzzles/$filename.md
+	aoc download -d $i -i data/inputs/$filename -p data/puzzles/$filename.md --session-file data/adventofcode.session
 done

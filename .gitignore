@@ -2,8 +2,9 @@ debug/
 target/
 
 data/inputs/*
-!data/inputs/.readme
+!data/inputs/example
 data/puzzles/*
-!data/puzzles/.readme
+!data/puzzles/example
 data/examples/*
-!data/examples/.readme
+!data/examples/example
+data/adventofcode.session
